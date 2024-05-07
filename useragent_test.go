@@ -26,6 +26,14 @@ func TestGetRandomDesktop(t *testing.T) {
 	}
 }
 
+func TestGetRandomDesktopUA(t *testing.T) {
+	// Calling the function to test
+	result := GetRandomDesktopUA()
+	if result == "" {
+		t.Errorf("GetRandomDesktop returned an empty user agent")
+	}
+}
+
 func TestGetRandomMobile(t *testing.T) {
 	// Calling the function to test
 	result := GetRandomMobile()
@@ -34,9 +42,17 @@ func TestGetRandomMobile(t *testing.T) {
 	}
 }
 
+func TestGetRandomMobileUA(t *testing.T) {
+	// Calling the function to test
+	result := GetRandomMobileUA()
+	if result == "" {
+		t.Errorf("GetRandomMobile returned an empty user agent")
+	}
+}
+
 func TestGetRandomUserAgent(t *testing.T) {
-	result := GetRandomUserAgent()
-	if result.UA == "" {
+	result := GetRandomUA()
+	if result == "" {
 		t.Errorf("GetRandomUserAgent returned an empty user agent")
 	}
 }

@@ -71,6 +71,7 @@ func GetRandomDesktopUA() string {
 func GetRandomMobileUA() string {
 	return GetRandomMobile().UA
 }
+
 func GetRandomUA() string {
 	allAgents := append(desktopAgents, mobileAgents...)
 	return allAgents[rand.Intn(len(allAgents))].UA

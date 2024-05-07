@@ -49,7 +49,7 @@ mobileAgents := commonuseragent.GetAllMobile()
 To get a random desktop user agent:
 
 ```go
-randomDesktop := commonuseragent.GetRandomDesktop()
+randomDesktop := commonuseragent.GetRandomDesktopUA()
 ```
 
 ### Getting a Random Mobile User Agent
@@ -57,7 +57,7 @@ randomDesktop := commonuseragent.GetRandomDesktop()
 To get a random mobile user agent:
 
 ```go
-randomMobile := commonuseragent.GetRandomMobile()
+randomMobile := commonuseragent.GetRandomMobileUA()
 ```
 
 ### Getting Any Random User Agent
@@ -65,7 +65,7 @@ randomMobile := commonuseragent.GetRandomMobile()
 To get a random user agent from either the desktop or mobile lists:
 
 ```go
-randomUserAgent := commonuseragent.GetRandomUserAgent()
+randomUserAgent := commonuseragent.GetRandomUA()
 ```
 
 ## Contributing
@@ -94,5 +94,7 @@ git ls-remote --tags origin
 ```
 
 ## License
+
+UserAgent data comes from https://useragents.me/
 
 This project is licensed under the MIT License - see the LICENSE file for details.
