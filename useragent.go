@@ -1,11 +1,16 @@
 package commonuseragent
 
 import (
+	"embed"
 	"encoding/json"
-	"io/ioutil"
 	"math/rand"
 	"time"
 )
+
+// Go directive to embed the files in the binary.
+//go:embed desktop_useragents.json
+//go:embed mobile_useragents.json
+var content embed.FS
 
 type UserAgent struct {
 	UA  string  `json:"ua"`
@@ -22,7 +27,8 @@ func init() {
 }
 
 func loadUserAgents(filename string, agents *[]UserAgent) {
-	bytes, err := ioutil.ReadFile(filename)
+	// Reading from the embedded file system
+	bytes, err := content.ReadFile(filename)
 	if err != nil {
 		panic(err)
 	}
