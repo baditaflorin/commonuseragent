@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';">
+    <title>User Agent Manager - Test Harness</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        .button.secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .button.success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .result-box {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            word-wrap: break-word;
+        }
+
+        .result-box.error {
+            background: #fee;
+            border-color: #fcc;
+        }
+
+        .result-box.success {
+            background: #efe;
+            border-color: #cfc;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .log-entry {
+            background: #f8f9fa;
+            border-left: 3px solid #667eea;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        .log-entry strong {
+            color: #667eea;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .copy-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+            margin-top: 5px;
+        }
+
+        .copy-btn:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>User Agent Manager</h1>
+            <p class="subtitle">Secure Test Harness for User Agent Library</p>
+        </div>
+
+        <div id="alertContainer"></div>
+
+        <div class="grid">
+            <!-- Random User Agent Card -->
+            <div class="card">
+                <h2>Get Random User Agent</h2>
+                <button class="button" onclick="getRandomUA('desktop')">Get Desktop UA</button>
+                <button class="button secondary" onclick="getRandomUA('mobile')">Get Mobile UA</button>
+                <button class="button success" onclick="getRandomUA('random')">Get Any Random UA</button>
+                <div id="randomResult" class="result-box hidden"></div>
+            </div>
+
+            <!-- Statistics Card -->
+            <div class="card">
+                <h2>Statistics</h2>
+                <button class="button" onclick="loadStats()">Refresh Stats</button>
+                <div id="statsResult" class="stats-grid hidden"></div>
+            </div>
+
+            <!-- API Tester Card -->
+            <div class="card">
+                <h2>API Endpoint Tester</h2>
+                <div class="input-group">
+                    <label for="endpoint">Endpoint:</label>
+                    <input type="text" id="endpoint" placeholder="/api/random" value="/api/random">
+                </div>
+                <button class="button" onclick="testEndpoint()">Test Endpoint</button>
+                <div id="apiResult" class="result-box hidden"></div>
+            </div>
+
+            <!-- Recent Requests Card -->
+            <div class="card">
+                <h2>Recent Requests</h2>
+                <div class="input-group">
+                    <label for="limit">Limit:</label>
+                    <input type="number" id="limit" value="10" min="1" max="100">
+                </div>
+                <button class="button" onclick="loadRecentRequests()">Load Recent Requests</button>
+                <div id="logsResult" class="result-box hidden" style="max-height: 400px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showAlert(message, type = 'success') {
+            const container = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            container.appendChild(alert);
+            setTimeout(() => alert.remove(), 5000);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function getRandomUA(type) {
+            const resultDiv = document.getElementById('randomResult');
+            resultDiv.classList.remove('hidden', 'error', 'success');
+            resultDiv.textContent = 'Loading...';
+
+            try {
+                const endpoints = {
+                    'desktop': '/api/desktop',
+                    'mobile': '/api/mobile',
+                    'random': '/api/random'
+                };
+
+                const response = await fetch(endpoints[type]);
+                const data = await response.json();
+
+                if (data.success) {
+                    resultDiv.classList.add('success');
+                    resultDiv.innerHTML = `
+                        <strong>User Agent:</strong><br>
+                        ${escapeHtml(data.data.userAgent)}<br>
+                        <strong>Type:</strong> ${escapeHtml(data.data.type)}
+                        <button class="copy-btn" onclick="copyToClipboard('${escapeHtml(data.data.userAgent)}')">Copy UA</button>
+                    `;
+                    showAlert('User agent retrieved successfully!', 'success');
+                } else {
+                    resultDiv.classList.add('error');
+                    resultDiv.textContent = 'Error: ' + escapeHtml(data.error);
+                    showAlert('Failed to get user agent', 'error');
+                }
+            } catch (error) {
+                resultDiv.classList.add('error');
+                resultDiv.textContent = 'Error: ' + escapeHtml(error.message);
+                showAlert('Network error occurred', 'error');
+            }
+        }
+
+        async function loadStats() {
+            const resultDiv = document.getElementById('statsResult');
+            resultDiv.classList.remove('hidden');
+            resultDiv.innerHTML = 'Loading...';
+
+            try {
+                const response = await fetch('/api/stats');
+                const data = await response.json();
+
+                if (data.success) {
+                    const stats = data.data;
+                    resultDiv.innerHTML = `
+                        <div class="stat-item">
+                            <div class="stat-value">${stats.totalRequests}</div>
+                            <div class="stat-label">Total Requests</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${stats.desktopRequests}</div>
+                            <div class="stat-label">Desktop</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${stats.mobileRequests}</div>
+                            <div class="stat-label">Mobile</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${stats.uniqueIPs}</div>
+                            <div class="stat-label">Unique IPs</div>
+                        </div>
+                    `;
+                    showAlert('Statistics loaded', 'success');
+                } else {
+                    resultDiv.innerHTML = 'Error: ' + escapeHtml(data.error);
+                    showAlert('Failed to load statistics', 'error');
+                }
+            } catch (error) {
+                resultDiv.innerHTML = 'Error: ' + escapeHtml(error.message);
+                showAlert('Network error occurred', 'error');
+            }
+        }
+
+        async function testEndpoint() {
+            const endpoint = document.getElementById('endpoint').value;
+            const resultDiv = document.getElementById('apiResult');
+            resultDiv.classList.remove('hidden', 'error', 'success');
+            resultDiv.textContent = 'Loading...';
+
+            // Validate endpoint
+            if (!endpoint || !endpoint.startsWith('/')) {
+                resultDiv.classList.add('error');
+                resultDiv.textContent = 'Error: Endpoint must start with /';
+                return;
+            }
+
+            try {
+                const response = await fetch(endpoint);
+                const data = await response.json();
+
+                resultDiv.classList.add(data.success ? 'success' : 'error');
+                resultDiv.textContent = JSON.stringify(data, null, 2);
+                showAlert('Endpoint tested successfully', 'success');
+            } catch (error) {
+                resultDiv.classList.add('error');
+                resultDiv.textContent = 'Error: ' + escapeHtml(error.message);
+                showAlert('Failed to test endpoint', 'error');
+            }
+        }
+
+        async function loadRecentRequests() {
+            const limit = document.getElementById('limit').value;
+            const resultDiv = document.getElementById('logsResult');
+            resultDiv.classList.remove('hidden', 'error');
+            resultDiv.innerHTML = 'Loading...';
+
+            try {
+                const response = await fetch(`/api/logs?limit=${encodeURIComponent(limit)}`);
+                const data = await response.json();
+
+                if (data.success && data.data.logs) {
+                    const logs = data.data.logs;
+                    if (logs.length === 0) {
+                        resultDiv.innerHTML = '<p>No requests logged yet.</p>';
+                    } else {
+                        resultDiv.innerHTML = logs.map(log => `
+                            <div class="log-entry">
+                                <strong>${escapeHtml(log.agentType)}</strong> - ${new Date(log.requestedAt).toLocaleString()}<br>
+                                <small>IP: ${escapeHtml(log.ipAddress)} | Endpoint: ${escapeHtml(log.endpoint)}</small><br>
+                                <small style="word-break: break-all;">${escapeHtml(log.userAgent)}</small>
+                            </div>
+                        `).join('');
+                    }
+                    showAlert('Logs loaded successfully', 'success');
+                } else {
+                    resultDiv.classList.add('error');
+                    resultDiv.textContent = 'Error: ' + escapeHtml(data.error || 'Unknown error');
+                    showAlert('Failed to load logs', 'error');
+                }
+            } catch (error) {
+                resultDiv.classList.add('error');
+                resultDiv.textContent = 'Error: ' + escapeHtml(error.message);
+                showAlert('Network error occurred', 'error');
+            }
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showAlert('Copied to clipboard!', 'success');
+            }).catch(err => {
+                showAlert('Failed to copy', 'error');
+            });
+        }
+
+        // Load stats on page load
+        window.addEventListener('load', () => {
+            loadStats();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  useragent-demo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: commonuseragent:latest
+    container_name: useragent-demo
+    restart: unless-stopped
+
+    # Security options
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+
+    # Run as non-root user
+    user: "1000:1000"
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+    # Environment variables
+    environment:
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8080
+      - DB_PATH=/data/useragent.db
+      - APP_ENV=production
+      - LOG_LEVEL=info
+      - SERVER_READ_TIMEOUT=15s
+      - SERVER_WRITE_TIMEOUT=15s
+      - SERVER_IDLE_TIMEOUT=60s
+      - DB_MAX_OPEN_CONNS=25
+      - DB_MAX_IDLE_CONNS=5
+      - DB_CONN_MAX_LIFETIME=5m
+      - MAX_REQUESTS_PER_MINUTE=100
+
+    # Ports
+    ports:
+      - "8080:8080"
+
+    # Volumes for persistent data
+    volumes:
+      - useragent_data:/data
+      - /tmp:/tmp
+
+    # Healthcheck
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+    # Networks
+    networks:
+      - useragent_network
+
+volumes:
+  useragent_data:
+    driver: local
+
+networks:
+  useragent_network:
+    driver: bridge
