@@ -3,7 +3,7 @@ package api
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+
 	"html"
 	"net"
 	"net/http"
@@ -362,7 +362,7 @@ func sanitizeErrorMessage(message string) string {
 // RateLimitMiddleware provides basic rate limiting
 func RateLimitMiddleware(maxRequests int, window time.Duration) func(http.Handler) http.Handler {
 	type client struct {
-		requests int
+		requests  int
 		lastReset time.Time
 	}
 
@@ -379,7 +379,7 @@ func RateLimitMiddleware(maxRequests int, window time.Duration) func(http.Handle
 
 			if !exists || now.Sub(c.lastReset) > window {
 				clients[ip] = &client{
-					requests: 1,
+					requests:  1,
 					lastReset: now,
 				}
 				mu.Unlock()
