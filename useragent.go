@@ -179,38 +179,20 @@ func (m *Manager) GetAllMobile() []UserAgent {
 	return agents
 }
 
-// GetRandomDesktop returns a random desktop UserAgent using crypto/rand
+// GetRandomDesktop returns a random desktop UserAgent using weighted random selection
 func (m *Manager) GetRandomDesktop() (UserAgent, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	if len(m.desktopAgents) == 0 {
-		return UserAgent{}, ErrEmptyAgentList
-	}
-
-	idx, err := secureRandomInt(len(m.desktopAgents))
-	if err != nil {
-		return UserAgent{}, fmt.Errorf("failed to generate random index: %w", err)
-	}
-
-	return m.desktopAgents[idx], nil
+	return m.getWeightedRandomAgent(m.desktopAgents)
 }
 
-// GetRandomMobile returns a random mobile UserAgent using crypto/rand
+// GetRandomMobile returns a random mobile UserAgent using weighted random selection
 func (m *Manager) GetRandomMobile() (UserAgent, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	if len(m.mobileAgents) == 0 {
-		return UserAgent{}, ErrEmptyAgentList
-	}
-
-	idx, err := secureRandomInt(len(m.mobileAgents))
-	if err != nil {
-		return UserAgent{}, fmt.Errorf("failed to generate random index: %w", err)
-	}
-
-	return m.mobileAgents[idx], nil
+	return m.getWeightedRandomAgent(m.mobileAgents)
 }
 
 // GetRandomDesktopUA returns just the UA string of a random desktop user agent
@@ -236,20 +218,62 @@ func (m *Manager) GetRandomUA() (string, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
+	// Combine agents for weighted selection across all
+	// Note: This assumes percentages in both files are relative to their own category (sum to ~100)
+	// If we want to mix them, we might need to normalize or just treat them as one pool.
+	// For simplicity and robustness, let's treat them as one big pool where weights are relative.
+
 	allAgents := make([]UserAgent, 0, len(m.desktopAgents)+len(m.mobileAgents))
 	allAgents = append(allAgents, m.desktopAgents...)
 	allAgents = append(allAgents, m.mobileAgents...)
 
-	if len(allAgents) == 0 {
-		return "", ErrEmptyAgentList
-	}
-
-	idx, err := secureRandomInt(len(allAgents))
+	ua, err := m.getWeightedRandomAgent(allAgents)
 	if err != nil {
-		return "", fmt.Errorf("failed to generate random index: %w", err)
+		return "", err
+	}
+	return ua.UA, nil
+}
+
+// getWeightedRandomAgent selects an agent based on its Pct value
+func (m *Manager) getWeightedRandomAgent(agents []UserAgent) (UserAgent, error) {
+	if len(agents) == 0 {
+		return UserAgent{}, ErrEmptyAgentList
 	}
 
-	return allAgents[idx].UA, nil
+	var totalWeight float64
+	for _, ua := range agents {
+		totalWeight += ua.Pct
+	}
+
+	if totalWeight <= 0 {
+		// Fallback to uniform selection if weights are invalid
+		idx, err := secureRandomInt(len(agents))
+		if err != nil {
+			return UserAgent{}, err
+		}
+		return agents[idx], nil
+	}
+
+	// Generate a random value in [0, totalWeight)
+	// We use a large integer range for precision
+	const precision = 1_000_000
+	randInt, err := secureRandomInt(precision)
+	if err != nil {
+		return UserAgent{}, fmt.Errorf("failed to generate random value: %w", err)
+	}
+
+	randomWeight := float64(randInt) / float64(precision) * totalWeight
+
+	currentWeight := 0.0
+	for _, ua := range agents {
+		currentWeight += ua.Pct
+		if randomWeight < currentWeight {
+			return ua, nil
+		}
+	}
+
+	// Should not happen if logic is correct, but return last one as fallback
+	return agents[len(agents)-1], nil
 }
 
 // secureRandomInt generates a cryptographically secure random integer in [0, max)
