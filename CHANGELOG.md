@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented here.
 
+## Unreleased
+
+### Fixed
+
+- Return a JSON `503 Service Unavailable` response from monitoring endpoints
+  when request logging is unavailable, rather than panicking.
+- Return a JSON rate-limit response with `X-Content-Type-Options: nosniff`.
+
+### Testing
+
+- Add API-handler coverage for selection, request logging, unavailable
+  monitoring dependencies, invalid limits, and rate-limit responses.
+
 ## v0.2.1 - 2026-08-22
 
 ### Documentation

@@ -184,6 +184,9 @@ func (h *Handler) GetRecentRequests(w http.ResponseWriter, r *http.Request) {
 		h.sendError(w, http.StatusMethodNotAllowed, "method not allowed")
 		return
 	}
+	if !h.requireDB(w) {
+		return
+	}
 
 	// Parse and validate limit parameter
 	limit := 50 // default
@@ -215,6 +218,9 @@ func (h *Handler) GetRecentRequests(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetStats(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		h.sendError(w, http.StatusMethodNotAllowed, "method not allowed")
+		return
+	}
+	if !h.requireDB(w) {
 		return
 	}
 
@@ -263,6 +269,15 @@ func (h *Handler) logRequest(ctx context.Context, userAgent, agentType, ip, endp
 
 	_, err := h.db.LogRequest(ctx, log)
 	return err
+}
+
+func (h *Handler) requireDB(w http.ResponseWriter) bool {
+	if h.db != nil {
+		return true
+	}
+
+	h.sendError(w, http.StatusServiceUnavailable, "request logging is unavailable")
+	return false
 }
 
 func (h *Handler) sendJSON(w http.ResponseWriter, statusCode int, data interface{}) {
@@ -389,7 +404,10 @@ func RateLimitMiddleware(maxRequests int, window time.Duration) func(http.Handle
 
 			if c.requests >= maxRequests {
 				mu.Unlock()
-				http.Error(w, `{"success":false,"error":"rate limit exceeded"}`, http.StatusTooManyRequests)
+				w.Header().Set("Content-Type", "application/json")
+				w.Header().Set("X-Content-Type-Options", "nosniff")
+				w.WriteHeader(http.StatusTooManyRequests)
+				_, _ = w.Write([]byte(`{"success":false,"error":"rate limit exceeded"}`))
 				return
 			}
 
