@@ -2,6 +2,7 @@ package commonuseragent
 
 import (
 	"errors"
+	"math"
 	"strings"
 	"sync"
 	"testing"
@@ -257,6 +258,16 @@ func TestValidateAgent(t *testing.T) {
 		{
 			name:      "empty UA",
 			agent:     UserAgent{UA: "", Pct: 50.0},
+			shouldErr: true,
+		},
+		{
+			name:      "zero percentage",
+			agent:     UserAgent{UA: "Mozilla/5.0 (valid user agent)", Pct: 0},
+			shouldErr: true,
+		},
+		{
+			name:      "NaN percentage",
+			agent:     UserAgent{UA: "Mozilla/5.0 (valid user agent)", Pct: math.NaN()},
 			shouldErr: true,
 		},
 		{

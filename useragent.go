@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"math/big"
 	"sync"
 )
@@ -126,17 +127,27 @@ func (m *Manager) validate() error {
 		return fmt.Errorf("%w: both desktop and mobile agent lists are empty", ErrInvalidData)
 	}
 
-	// Validate individual agents
+	// Validate individual agents and reject duplicate values. Duplicates make
+	// the configured weights misleading because each occurrence is selected.
+	seen := make(map[string]struct{}, len(m.desktopAgents)+len(m.mobileAgents))
 	for i, agent := range m.desktopAgents {
 		if err := validateAgent(agent); err != nil {
 			return fmt.Errorf("invalid desktop agent at index %d: %w", i, err)
 		}
+		if _, exists := seen[agent.UA]; exists {
+			return fmt.Errorf("invalid desktop agent at index %d: %w: duplicate user agent", i, ErrInvalidData)
+		}
+		seen[agent.UA] = struct{}{}
 	}
 
 	for i, agent := range m.mobileAgents {
 		if err := validateAgent(agent); err != nil {
 			return fmt.Errorf("invalid mobile agent at index %d: %w", i, err)
 		}
+		if _, exists := seen[agent.UA]; exists {
+			return fmt.Errorf("invalid mobile agent at index %d: %w: duplicate user agent", i, ErrInvalidData)
+		}
+		seen[agent.UA] = struct{}{}
 	}
 
 	return nil
@@ -147,8 +158,8 @@ func validateAgent(ua UserAgent) error {
 	if ua.UA == "" {
 		return fmt.Errorf("%w: user agent string is empty", ErrInvalidData)
 	}
-	if ua.Pct < 0 || ua.Pct > 100 {
-		return fmt.Errorf("%w: percentage must be between 0 and 100, got %.2f", ErrInvalidData, ua.Pct)
+	if math.IsNaN(ua.Pct) || math.IsInf(ua.Pct, 0) || ua.Pct <= 0 || ua.Pct > 100 {
+		return fmt.Errorf("%w: percentage must be greater than 0 and at most 100, got %.2f", ErrInvalidData, ua.Pct)
 	}
 	// Basic sanity check for UA string length
 	if len(ua.UA) < 10 || len(ua.UA) > 1000 {

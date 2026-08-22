@@ -1,0 +1,12 @@
+when:
+  - event: [push, pull_request]
+
+steps:
+  verify:
+    image: golang:1.25
+    commands:
+      - go mod verify
+      - test -z "$(gofmt -l .)"
+      - go vet ./...
+      - go test -race -covermode=atomic ./...
+      - go build ./...
