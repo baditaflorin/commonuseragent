@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## v0.2.1 - 2026-08-22
+
+### Documentation
+
+- Align the README's release reference with the repository's versioned release
+  series and changelog.
+
 ## v0.2.0 - 2026-08-22
 
 ### Changed

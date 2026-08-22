@@ -211,25 +211,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Changelog
 
-### v2.0.0 (Latest)
+Current release: [v0.2.1](CHANGELOG.md).
 
-**Breaking Changes:**
-- All API functions now return errors instead of panicking
-- Thread-safe Manager pattern introduced
-
-**Security Improvements:**
-- ✅ Replaced `math/rand` with `crypto/rand`
-- ✅ Added comprehensive input validation
-- ✅ Implemented parameterized SQL queries
-- ✅ Added error sanitization
-- ✅ Thread-safety with proper locking
-
-**New Features:**
-- Web-based test harness and GUI
-- SQLite request logging with analytics
-- Environment-based configuration
-- Rate limiting and security headers
-- Docker support with non-root execution
-- Comprehensive test suite (78%+ coverage)
-
-See [CHANGELOG.md](CHANGELOG.md) for full version history.
+See [CHANGELOG.md](CHANGELOG.md) for the full version history.
